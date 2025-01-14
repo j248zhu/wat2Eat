@@ -125,6 +125,8 @@ if not user_query:
             st.write(f"- {dish}")
 
 # Step 3: Search for restaurants based on preferences using Google Maps API
+filtered_results = []
+
 if lat is not None and lon is not None:
     query = f"{user_query} restaurants near me" if user_query else f"restaurants near me"
     
