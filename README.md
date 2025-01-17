@@ -14,3 +14,4 @@ Technologies Used:
 - Google Maps API
 - Geolocation Services
 
+Password to unlock the app: **letseat!**
