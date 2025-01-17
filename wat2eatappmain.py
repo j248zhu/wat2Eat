@@ -5,6 +5,22 @@ from datetime import datetime
 from openai import OpenAI
 import requests
 
+# Password protection
+def authenticate():
+    st.title("Wat2Eat - Password Protected")
+    password = st.text_input("Enter the password to access the app:", type="password")
+    if password == "letseat!":
+        st.success("Access granted!")
+        return True
+    elif password:
+        st.error("Incorrect password. Please try again.")
+        return False
+    else:
+        return False
+
+if not authenticate():
+    st.stop()  # Stop execution if the user is not authenticated
+
 # Initialize OpenAI and Google Maps API clients
 client = OpenAI(api_key=st.secrets["openai"]["api_key"])
 gmaps = googlemaps.Client(key=st.secrets["google"]["api_key"])
