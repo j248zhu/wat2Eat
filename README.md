@@ -15,3 +15,4 @@ Technologies Used:
 - Geolocation Services
 
 Password to unlock the app: **letseat!**
+Link to Demo: https://wat2eat-demo.streamlit.app/
