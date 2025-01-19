@@ -16,3 +16,5 @@ Technologies Used:
 
 Password to unlock the app: **letseat!**
 Link to Demo: https://wat2eat-demo.streamlit.app/
+
+Update: live location seems to have issues when ran on Streamlit vs. locally, uncheck "Use my current location" and instead type in the nearest well-known area near you to retrieve results. 
