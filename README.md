@@ -1,6 +1,6 @@
 wat2Eat - Meal Discovery and Recommendation App
 
-wat2Eat is a web app designed to help indecisive users select new cuisines or dishes in nearby areas with great value and little effort by leveraging geolocation via Google Maps APIs and OpenAI API recommendation algorithms,  tailored to their preferences.
+wat2Eat is a web app designed to help indecisive users select new cuisines or dishes in nearby areas with great value and little effort by leveraging geolocation via Google Maps APIs and OpenAI API recommendation algorithms,  tailored to their preferences. This App is designed to be a MVP built in less than a week's time.
 
 Key Features:
 - Personalized Restaurant Recommendations: Suggests dining options based on your current location
