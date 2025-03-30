@@ -41,16 +41,21 @@ st.write(f"**Current Date/Time**: {current_time}")
 
 # Function to get user's current location using Google Maps Geolocation API
 def get_user_location():
+    if 'last_location' in st.session_state:
+        return st.session_state.last_location  # Return cached data
+    
     url = f"https://www.googleapis.com/geolocation/v1/geolocate?key={st.secrets['google']['api_key']}"
     response = requests.post(url)
     if response.status_code == 200:
         location_data = response.json()
         lat = location_data['location']['lat']
         lon = location_data['location']['lng']
+        st.session_state.last_location = (lat, lon)  # Cache the result
         return lat, lon
     else:
-        st.error("Could not retrieve your current location.")
+        st.error("Could not retrieve your current location. Please input it manually.")
         return None, None
+
 
 # Function to get coordinates from a user-entered location using Google Maps Geocoding API
 def get_coordinates_from_location(location_query):
@@ -63,27 +68,37 @@ def get_coordinates_from_location(location_query):
         st.error(f"Could not find coordinates for '{location_query}'.")
         return None, None
 
-# Step 1: Get user's current location or use a manually entered location
+# Step 1: Unified location handling
 st.subheader("Search Location")
-user_location_input = st.text_input("Enter a location in the GTA in the form of (Location, Toronto) to search nearby restaurants:")
+
+# Initialize
+if 'user_coords' not in st.session_state:
+    st.session_state.user_coords = None
+
+# Inputs (unchanged)
+user_location_input = st.text_input("Enter a location in the form of (Landmark, City) or (Major intersection, City) to search nearby restaurants:")
 use_current_location = st.checkbox("Use my current location (default)", value=True)
 
+# Geolocation button
 if st.button("Get Current Location"):
     geolocation = streamlit_geolocation()
-    if geolocation and geolocation['latitude'] is not None and geolocation['longitude'] is not None:
-        lat = geolocation['latitude']
-        lon = geolocation['longitude']
-        st.success(f"Searching for restaurants near Latitude {lat}, Longitude {lon}")
+    if geolocation and geolocation['latitude']:
+        st.session_state.user_coords = (geolocation['latitude'], geolocation['longitude'])
+        st.success("Location updated!")
     else:
         st.error("Could not retrieve your current location.")
-else:
-    if user_location_input.strip():
-        # Use the manually entered location if provided
-        lat, lon = get_coordinates_from_location(user_location_input)
-        if lat is not None and lon is not None:
-            st.success(f"Searching for restaurants near Latitude {lat}, Longitude {lon}")
-    elif use_current_location:
-        st.info("Please click the 'Get Current Location' button to fetch your location.")
+
+# Coordinate resolution logic
+if user_location_input.strip():  # Manual input takes highest priority
+    st.session_state.user_coords = get_coordinates_from_location(user_location_input)
+elif use_current_location and not st.session_state.user_coords:
+    st.info("Please click 'Get Current Location' to fetch your location")
+
+# Display current coordinates (if any)
+if st.session_state.user_coords:
+    lat, lon = st.session_state.user_coords
+    st.success(f"Searching near: {lat:.4f}, {lon:.4f}")
+
 
 # Step 2: Pre-processing - Collect user preferences
 st.header("Your Preferences")
@@ -100,7 +115,7 @@ other_allergy = st.text_input("Other allergies (please specify):")
 
 # Price preferences
 st.subheader("Price Preferences")
-price_level_display = ["\$ (Cheap)", "\$\$ (Moderate)", "\$\$\$ (Expensive)", "\$\$\$\$ (Luxury)"]
+price_level_display = ["\$", "\$\$", "\$\$\$", "\$\$\$\$"]
 price_level_logic = [1, 2, 3, 4]  # Corresponding values for Google Maps API's price_level
 price_level_choice = st.radio("Select price range:", price_level_display)
 price_level_index = price_level_display.index(price_level_choice)
@@ -109,10 +124,10 @@ selected_price_level = price_level_logic[price_level_index]
 # Search radius preference
 st.subheader("Search Radius")
 search_radius_km = st.slider(
-    label="Select search radius (in kilometers):",
+    label="Select search radius (max 20 km):",
     min_value=1,
     max_value=20,
-    value=5,
+    value=3,
     step=1,
 ) * 1000  # Convert km to meters for Google Maps API
 
