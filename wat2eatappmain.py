@@ -77,7 +77,7 @@ if 'user_coords' not in st.session_state:
 
 # Inputs
 user_location_input = st.text_input(
-    "Enter a location (e.g., 'CN Tower, Toronto' or 'Yonge & Bloor, Toronto'):",
+    "Enter a location (e.g., 'Yorkdale, Toronto' or 'Yonge & Bloor, Toronto'):",
     placeholder="Landmark or intersection, City"
 )
 use_current_location = st.checkbox("Use my current location", value=True)
@@ -133,10 +133,10 @@ selected_price_level = price_level_logic[price_level_index]
 # Search radius preference
 st.subheader("Search Radius")
 search_radius_km = st.slider(
-    label="Select search radius (max 20 km):",
+    label="Select search radius (max 10 km):",
     min_value=1,
-    max_value=20,
-    value=3,
+    max_value=10,
+    value=2,
     step=1,
 ) * 1000  # Convert km to meters for Google Maps API
 
