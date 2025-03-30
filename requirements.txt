@@ -2,4 +2,4 @@ streamlit
 googlemaps
 openai
 requests
-
+streamlit-geolocation
