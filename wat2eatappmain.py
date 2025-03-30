@@ -68,42 +68,45 @@ def get_coordinates_from_location(location_query):
         st.error(f"Could not find coordinates for '{location_query}'.")
         return None, None
 
-# Step 1: Cleaned-up location handling
-st.subheader("Search Location")
+# Step 1: Privacy-focused location handling
+st.subheader("Find Restaurants")
 
 # Initialize session state
 if 'user_coords' not in st.session_state:
     st.session_state.user_coords = None
-    st.session_state.location_source = None  # Track if location came from GPS or manual input
 
-# User inputs
+# Inputs
 user_location_input = st.text_input(
     "Enter a location (e.g., 'CN Tower, Toronto' or 'Yonge & Bloor, Toronto'):",
     placeholder="Landmark or intersection, City"
 )
 use_current_location = st.checkbox("Use my current location", value=True)
 
-# Geolocation logic
-if use_current_location and st.button("Find Restaurants Near Me"):
-    geolocation = streamlit_geolocation()
-    if geolocation and geolocation['latitude']:
-        st.session_state.user_coords = (geolocation['latitude'], geolocation['longitude'])
-        st.session_state.location_source = "browser"
-        print(f"DEBUG: Using browser location - {st.session_state.user_coords}")  # Console only
-        st.success("Ready to search!")  # Generic success message
-    else:
-        st.error("Location access denied. Please enter a location manually.")
+# Unified geolocation button
+if use_current_location and st.button("Find Near Me"):
+    with st.spinner("Locating you (check browser permissions)..."):
+        geolocation = streamlit_geolocation()
+        if geolocation and geolocation['latitude']:
+            st.session_state.user_coords = (geolocation['latitude'], geolocation['longitude'])
+            print(f"DEBUG: Using location {st.session_state.user_coords}")  # Console only
+            st.success("Ready to search!")
+        else:
+            st.error("Couldn't access location. Please enter an address.")
 
 # Manual location fallback
 elif user_location_input.strip():
     st.session_state.user_coords = get_coordinates_from_location(user_location_input)
-    st.session_state.location_source = "manual"
-    print(f"DEBUG: Using manual location - {st.session_state.user_coords}")  # Console only
-    st.success("Ready to search!")
+    print(f"DEBUG: Using manual location {st.session_state.user_coords}")  # Console only
 
-# No location selected
-elif not st.session_state.user_coords:
-    st.info("Enter a location or enable 'Use my current location'")
+# Error prevention
+try:
+    if st.session_state.user_coords:
+        lat, lon = st.session_state.user_coords  # Now safely defined
+        # Your restaurant search logic here
+except NameError:
+    st.error("Location service unavailable. Please try again.")
+    st.session_state.user_coords = None
+
 
 
 # Step 2: Pre-processing - Collect user preferences
