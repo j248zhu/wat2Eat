@@ -68,36 +68,42 @@ def get_coordinates_from_location(location_query):
         st.error(f"Could not find coordinates for '{location_query}'.")
         return None, None
 
-# Step 1: Unified location handling
+# Step 1: Cleaned-up location handling
 st.subheader("Search Location")
 
-# Initialize
+# Initialize session state
 if 'user_coords' not in st.session_state:
     st.session_state.user_coords = None
+    st.session_state.location_source = None  # Track if location came from GPS or manual input
 
-# Inputs (unchanged)
-user_location_input = st.text_input("Enter a location in the form of (Landmark, City) or (Major intersection, City) to search nearby restaurants:")
-use_current_location = st.checkbox("Use my current location (default)", value=True)
+# User inputs
+user_location_input = st.text_input(
+    "Enter a location (e.g., 'CN Tower, Toronto' or 'Yonge & Bloor, Toronto'):",
+    placeholder="Landmark or intersection, City"
+)
+use_current_location = st.checkbox("Use my current location", value=True)
 
-# Geolocation button
-if st.button("Get Current Location"):
+# Geolocation logic
+if use_current_location and st.button("Find Restaurants Near Me"):
     geolocation = streamlit_geolocation()
     if geolocation and geolocation['latitude']:
         st.session_state.user_coords = (geolocation['latitude'], geolocation['longitude'])
-        st.success("Location updated!")
+        st.session_state.location_source = "browser"
+        print(f"DEBUG: Using browser location - {st.session_state.user_coords}")  # Console only
+        st.success("Ready to search!")  # Generic success message
     else:
-        st.error("Could not retrieve your current location.")
+        st.error("Location access denied. Please enter a location manually.")
 
-# Coordinate resolution logic
-if user_location_input.strip():  # Manual input takes highest priority
+# Manual location fallback
+elif user_location_input.strip():
     st.session_state.user_coords = get_coordinates_from_location(user_location_input)
-elif use_current_location and not st.session_state.user_coords:
-    st.info("Please click 'Get Current Location' to fetch your location")
+    st.session_state.location_source = "manual"
+    print(f"DEBUG: Using manual location - {st.session_state.user_coords}")  # Console only
+    st.success("Ready to search!")
 
-# Display current coordinates (if any)
-if st.session_state.user_coords:
-    lat, lon = st.session_state.user_coords
-    st.success(f"Searching near: {lat:.4f}, {lon:.4f}")
+# No location selected
+elif not st.session_state.user_coords:
+    st.info("Enter a location or enable 'Use my current location'")
 
 
 # Step 2: Pre-processing - Collect user preferences
