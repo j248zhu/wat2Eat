@@ -4,22 +4,7 @@ import googlemaps
 from datetime import datetime
 from openai import OpenAI
 import requests
-
-# Password protection
-def authenticate():
-    st.title("Wat2Eat - Password Protected")
-    password = st.text_input("Enter the password to access the app:", type="password")
-    if password == "letseat!":
-        st.success("Access granted!")
-        return True
-    elif password:
-        st.error("Incorrect password. Please try again.")
-        return False
-    else:
-        return False
-
-if not authenticate():
-    st.stop()  # Stop execution if the user is not authenticated
+from streamlit_geolocation import streamlit_geolocation
 
 # Initialize OpenAI and Google Maps API clients
 client = OpenAI(api_key=st.secrets["openai"]["api_key"])
@@ -80,18 +65,25 @@ def get_coordinates_from_location(location_query):
 
 # Step 1: Get user's current location or use a manually entered location
 st.subheader("Search Location")
-user_location_input = st.text_input("Enter a well-known location to search nearby restaurants (e.g., Yorkdale, Union Station, Vaughan Mills):")
+user_location_input = st.text_input("Enter a location in the GTA in the form of (Location, Toronto) to search nearby restaurants:")
 use_current_location = st.checkbox("Use my current location (default)", value=True)
 
-if use_current_location or not user_location_input.strip():
-    # Default to user's current location if no input or checkbox is selected
-    lat, lon = get_user_location()
+if st.button("Get Current Location"):
+    geolocation = streamlit_geolocation()
+    if geolocation and geolocation['latitude'] is not None and geolocation['longitude'] is not None:
+        lat = geolocation['latitude']
+        lon = geolocation['longitude']
+        st.success(f"Searching for restaurants near Latitude {lat}, Longitude {lon}")
+    else:
+        st.error("Could not retrieve your current location.")
 else:
-    # Use the manually entered location if provided
-    lat, lon = get_coordinates_from_location(user_location_input)
-
-if lat is not None and lon is not None:
-    st.success(f"Searching for restaurants near Latitude {lat}, Longitude {lon}")
+    if user_location_input.strip():
+        # Use the manually entered location if provided
+        lat, lon = get_coordinates_from_location(user_location_input)
+        if lat is not None and lon is not None:
+            st.success(f"Searching for restaurants near Latitude {lat}, Longitude {lon}")
+    elif use_current_location:
+        st.info("Please click the 'Get Current Location' button to fetch your location.")
 
 # Step 2: Pre-processing - Collect user preferences
 st.header("Your Preferences")
@@ -213,3 +205,4 @@ else:
     if st.button("Modify Inputs"):
         # Allow user to go back and modify inputs
         pass
+
