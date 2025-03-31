@@ -34,6 +34,9 @@ if 'results' not in st.session_state:
 if 'shown_places' not in st.session_state:
     st.session_state.shown_places = set()
 
+# Initialize coordinates to None
+lat, lon = None, None
+
 # Display app title and current date/time
 st.title("Wat2Eat - Find Restaurants")
 current_time = datetime.now().strftime("%A, %B %d, %Y, %I:%M %p %Z")
